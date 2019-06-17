@@ -59,10 +59,21 @@ class ReaderView extends StatelessWidget {
   }
 
   buildLoading() {
-    return Center(
-      child: CupertinoActivityIndicator(
-        radius: 15.0,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          height: top,
+          child: TextUtil.build(title, fontSize: _size),
+        ),
+        Expanded(
+          child: Center(
+            child: CupertinoActivityIndicator(
+              radius: 15.0,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -143,6 +154,7 @@ List<ReaderView> getReaderViews(List<String> datas,
 
 //修正文本
 String dealData(String str) {
+  if(str == null) return null;
   List<String> list;
   //转化为列表
   if (str.contains("\r\n")) {

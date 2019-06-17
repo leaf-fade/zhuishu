@@ -295,12 +295,14 @@ class _ShelfListWidgetState extends State<ShelfListWidget>
     return ListTile(
       onTap: () {
         bookData.isUpdate = false;
-        //阅读
-        RouteUtil.push(context, PageUrl.READER_SCENE, params: {
-          "bookId": bookData.bookId,
-          "chapterId": bookData.chapterId ?? 0,
-          "bookName": bookData.bookName,
-          "coverUrl": bookData.coverUrl,
+        SpHelper.getShelfBookChapterId(bookData.bookId).then((data){
+          //阅读
+          RouteUtil.push(context, PageUrl.READER_SCENE, params: {
+            "bookId": bookData.bookId,
+            "chapterId": data ?? 0,
+            "bookName": bookData.bookName,
+            "coverUrl": bookData.coverUrl,
+          });
         });
         bookData.lastReadDate = DateTime.now().millisecondsSinceEpoch;
         widget.bookDatas.sort(

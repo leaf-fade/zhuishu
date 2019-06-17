@@ -138,12 +138,11 @@ class _CatalogueListViewState extends BasePageState<CatalogueListView> {
         if(widget.bookData.chapterId == index&&widget.callback != null) return;
         //获取保存的书籍信息
         //回调方法，返回选择的章节 link
+        Navigator.pop(context);
         if (widget.callback != null) {
           widget.callback(list[index].link, index);
-          Navigator.pop(context);
         }else{
           //路由跳转，这里是书详情进入的
-          Navigator.pop(context);
           //阅读
           RouteUtil.push(context, PageUrl.READER_SCENE, params: {
             "bookId": widget.bookData.bookId,

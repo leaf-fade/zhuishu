@@ -17,6 +17,12 @@ import 'package:screen/screen.dart' as display;
 
 /*
 * 阅读界面
+*
+* 原理：
+* PageView实现翻页, 预加载，整体存3章
+* 1. 章节分3个状态， 加载中，成功 ，失败
+* 2. 先加载当前章节，等后续章节加载完成，在跳转过来
+*
 * */
 @ARoute(url: PageUrl.READER_SCENE)
 class ReaderScene extends StatelessWidget {
@@ -62,10 +68,8 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
   int _oldImgIndex;
   List<Color> _colorUris = MyColor.bgMap.values.toList();
   List<String> _imgUris = MyColor.bgImgList;
-
   Color textColor = Colors.black;
 
-  var _currentIndex = 0;
   PageController _pageController;
 
   //单章文章页数列表
@@ -73,6 +77,8 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
   ChapterInfo curChapter;
   ChapterInfo nextChapter;
 
+  //当前章节的id,主要是防止重复存储
+  int _currentChapterId = 0;
   int curSourceIndex = 0;
   List<BookSource> _sourceList;
   SourceChapters _sourceChapters;
@@ -84,7 +90,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
 
   @override
   void initState() {
-    _pageController = PageController(initialPage: _currentIndex)
+    _pageController = PageController()
       ..addListener(onScroll);
     //从sp中加载保存的字体设置爱好
     SpHelper.getFontSetting().then((fontSize) {
@@ -180,7 +186,6 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
                   (nextChapter != null ? nextChapter.pageCount : 0),
               itemBuilder: (context, index) {
                 ChapterInfo chapter;
-                print("=============");
                 var preLength = preChapter != null ? preChapter.pageCount : 0;
                 var curLength = curChapter.pageCount;
                 if (index < preLength) {
@@ -193,7 +198,6 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
                   chapter = nextChapter;
                   index = index - preLength - curLength;
                 }
-                print("${chapter.chapterId}");
                 return ReaderView(
                   chapter.title,
                   _fontSize,
@@ -279,13 +283,17 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
           _sourceList,
           onTap: hideMenu,
           catalogCallback: (String link, int chapterId) {
+            print("=============目录回调=============");
             preChapter = null;
             nextChapter = null;
             setState((){
               curChapter.state = 1;
+              curChapter.chapterId = chapterId;
+              curChapter.link = _sourceChapters.chapters[chapterId].link;
+              curChapter.title =  _sourceChapters.chapters[chapterId].title;
             });
             //重新网络请求
-               resetData(chapterId);
+            resetData(chapterId);
           },
           settingCallback: setting,
           sourceCallback: (index) {
@@ -366,8 +374,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
         (data) {
           print("===========2.加载目录============");
           _sourceChapters = SourceChapters.fromJson(data);
-          print("=======================");
-          resetData(widget.chapterId);
+          resetData(widget.chapterId, firstInit: true);
         },
         checkOk: () => false,
       );
@@ -447,13 +454,14 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
   }
 
   saveReadHistory() async{
-    print("==========1=============");
     if(readHistory == null){
       readHistory = await SpUtil.getStringList(READ_HISTORY);
     }
+    if(curChapter == null || curChapter.chapterId == _currentChapterId) return;
+
+    _currentChapterId = curChapter.chapterId;
     BookData data = getBookData();
     if(readHistory!=null && readHistory.isNotEmpty){
-      print("==========2=============");
       for(String str in readHistory ?? []){
         if(str.contains(data.bookId)){
           readHistory.remove(str);
@@ -461,7 +469,6 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
         }
       }
     }else{
-      print("==========3=============");
       readHistory = [];
     }
     readHistory.add(data.toString());
@@ -476,10 +483,13 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
     return chapterInfo;
   }
 
-  resetData(int chapterId) async {
+  resetData(int chapterId, {bool firstInit = false}) async {
     pageIndex = 0;
     curChapter = await fetchChapter(chapterId);
     if (curChapter != null) {
+      if(!firstInit){
+        _pageController.jumpToPage(0);
+      }
       loadSuccessState();
     }
 
@@ -507,7 +517,10 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
   Future<ChapterInfo> accessPageData(int chapterId) async {
     if (chapterId < 0 || chapterId >= _sourceChapters.chapters.length)
       return null;
-    SpHelper.saveShelfBookChapterId(curChapter.bookId,curChapter.chapterId);
+    if(curChapter!=null && curChapter.chapterId != null && curChapter.chapterId != _currentChapterId){
+      _currentChapterId =  curChapter.chapterId;
+      SpHelper.saveShelfBookChapterId(curChapter.bookId,_currentChapterId);
+    }
     ChapterInfo chapterInfo;
     await FileUtil.readFile(widget.bookId, chapterId).then((str) async {
       if (str == null || str.isEmpty) {
@@ -530,7 +543,14 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
 
   Future<ChapterInfo> loadNetData(String link, int chapterId) async {
     print("=========3.  网络加载 ====================");
-    ChapterInfo chapterInfo = ChapterInfo(state: 1);
+    ChapterInfo chapterInfo = ChapterInfo(
+      chapterId: chapterId,
+      link: link,
+      title: _sourceChapters.chapters[chapterId].title,
+      bookName: widget.bookName,
+      bookId: widget.bookId,
+      state: 1,
+    );
     String url = "http://chapterup.zhuishushenqi.com/chapter/" + StringAmend.urlEncode(link);
     await HttpUtil.getJson(url).then((data) {
       var ch = data["chapter"];
@@ -540,14 +560,8 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
       } else {
         str = ch["body"];
       }
-      chapterInfo = ChapterInfo(
-        chapterId: chapterId,
-        link: link,
-        title: _sourceChapters.chapters[chapterId].title,
-        bookName: widget.bookName,
-        bookId: widget.bookId,
-        content: str,
-      );
+      chapterInfo.state = 0;
+      chapterInfo.content = str;
       cacheBookData(chapterInfo);
     }).catchError((error) {
       print(error.toString());

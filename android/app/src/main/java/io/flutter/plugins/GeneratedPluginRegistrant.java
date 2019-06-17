@@ -5,6 +5,7 @@ import io.flutter.plugins.battery.BatteryPlugin;
 import io.flutter.plugins.connectivity.ConnectivityPlugin;
 import io.flutter.plugins.deviceinfo.DeviceInfoPlugin;
 import io.flutter.plugins.pathprovider.PathProviderPlugin;
+import flutter.plugins.screen.screen.ScreenPlugin;
 import io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin;
 
 /**
@@ -19,6 +20,7 @@ public final class GeneratedPluginRegistrant {
     ConnectivityPlugin.registerWith(registry.registrarFor("io.flutter.plugins.connectivity.ConnectivityPlugin"));
     DeviceInfoPlugin.registerWith(registry.registrarFor("io.flutter.plugins.deviceinfo.DeviceInfoPlugin"));
     PathProviderPlugin.registerWith(registry.registrarFor("io.flutter.plugins.pathprovider.PathProviderPlugin"));
+    ScreenPlugin.registerWith(registry.registrarFor("flutter.plugins.screen.screen.ScreenPlugin"));
     SharedPreferencesPlugin.registerWith(registry.registrarFor("io.flutter.plugins.sharedpreferences.SharedPreferencesPlugin"));
   }
 

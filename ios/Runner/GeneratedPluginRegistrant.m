@@ -7,6 +7,7 @@
 #import <connectivity/ConnectivityPlugin.h>
 #import <device_info/DeviceInfoPlugin.h>
 #import <path_provider/PathProviderPlugin.h>
+#import <screen/ScreenPlugin.h>
 #import <shared_preferences/SharedPreferencesPlugin.h>
 
 @implementation GeneratedPluginRegistrant
@@ -16,6 +17,7 @@
   [FLTConnectivityPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTConnectivityPlugin"]];
   [FLTDeviceInfoPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTDeviceInfoPlugin"]];
   [FLTPathProviderPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTPathProviderPlugin"]];
+  [ScreenPlugin registerWithRegistrar:[registry registrarForPlugin:@"ScreenPlugin"]];
   [FLTSharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTSharedPreferencesPlugin"]];
 }
 

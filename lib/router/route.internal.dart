@@ -6,12 +6,12 @@
 
 import 'dart:convert';
 import 'package:annotation_route/route.dart';
-import 'package:zhuishu/ui/main/discovery/book_categories_page.dart';
-import 'package:zhuishu/ui/main/discovery/book_comment_page.dart';
 import 'package:zhuishu/ui/main/discovery/books_list_detail_page.dart';
 import 'package:zhuishu/ui/main/discovery/books_list_page.dart';
 import 'package:zhuishu/ui/main/discovery/book_categories_info_page.dart';
+import 'package:zhuishu/ui/main/discovery/book_categories_page.dart';
 import 'package:zhuishu/ui/main/discovery/book_comment_detail_page.dart';
+import 'package:zhuishu/ui/main/discovery/book_comment_page.dart';
 import 'package:zhuishu/ui/main/discovery/book_info_page.dart';
 import 'package:zhuishu/ui/main/discovery/rank_page.dart';
 import 'package:zhuishu/ui/main/shelf/author_books_page.dart';
@@ -23,12 +23,6 @@ class ARouterInternalImpl extends ARouterInternal {
   ARouterInternalImpl();
   final Map<String, List<Map<String, dynamic>>> innerRouterMap =
       <String, List<Map<String, dynamic>>>{
-    'page://book_categories_page': [
-      {'clazz': CategoriesPage}
-    ],
-    'page://books_comment_page': [
-      {'clazz': BookCommentPage}
-    ],
     'page://books_list_detail_page': [
       {'clazz': BooksListDetailPage}
     ],
@@ -38,8 +32,14 @@ class ARouterInternalImpl extends ARouterInternal {
     'page://book_categories_info_page': [
       {'clazz': CategoriesInfoPage}
     ],
+    'page://book_categories_page': [
+      {'clazz': CategoriesPage}
+    ],
     'page://books_comment_detail_page': [
       {'clazz': BookCommentDetailPage}
+    ],
+    'page://books_comment_page': [
+      {'clazz': BookCommentPage}
     ],
     'page://book_info_page': [
       {'clazz': BookInfoPage}
@@ -82,18 +82,18 @@ class ARouterInternalImpl extends ARouterInternal {
 
   dynamic instanceFromClazz(Type clazz, dynamic option) {
     switch (clazz) {
-      case CategoriesPage:
-        return new CategoriesPage(option);
-      case BookCommentPage:
-        return new BookCommentPage(option);
       case BooksListDetailPage:
         return new BooksListDetailPage(option);
       case BooksListPage:
         return new BooksListPage(option);
       case CategoriesInfoPage:
         return new CategoriesInfoPage(option);
+      case CategoriesPage:
+        return new CategoriesPage(option);
       case BookCommentDetailPage:
         return new BookCommentDetailPage(option);
+      case BookCommentPage:
+        return new BookCommentPage(option);
       case BookInfoPage:
         return new BookInfoPage(option);
       case RankPage:
