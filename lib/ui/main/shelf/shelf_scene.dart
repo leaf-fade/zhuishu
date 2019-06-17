@@ -8,8 +8,11 @@ import 'package:zhuishu/model/book_info.dart';
 import 'package:zhuishu/model/book_shelf_data.dart';
 import 'package:zhuishu/router/route_util.dart';
 import 'package:zhuishu/router/router_const.dart';
-import 'package:zhuishu/ui/main/shelf/history_page.dart';
+import 'package:zhuishu/ui/main/shelf/delete_manage_page.dart';
+import 'package:zhuishu/ui/main/shelf/history_page.dart' show HistoryPage;
 import 'package:zhuishu/ui/widget/cover_image.dart';
+import 'package:zhuishu/ui/widget/progress_dialog.dart';
+import 'package:zhuishu/ui/widget/refresh.dart';
 import 'package:zhuishu/util/event_bus.dart';
 import 'package:zhuishu/util/icon.dart';
 import 'package:zhuishu/util/net.dart';
@@ -22,51 +25,40 @@ class ShelfScene extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("书架"),
-          actions: <Widget>[
-            buildIcon(
-              icon: Icons.search,
+      appBar: AppBar(
+        title: Text("书架"),
+        actions: <Widget>[
+          buildIcon(
+            icon: Icons.search,
+            onTap: () {
+              RouteUtil.push(context, PageUrl.SEARCH_PAGE);
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: buildIcon(
+              icon: Icons.history,
               onTap: () {
-                RouteUtil.push(context, PageUrl.SEARCH_PAGE);
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => HistoryPage()));
               },
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: buildIcon(
-                icon: Icons.history,
-                onTap: () {
-                  Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => HistoryPage()));
-                },
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: buildIcon(
+              icon: Icons.more_horiz,
+              onTap: () {
+                SpHelper.getTheme().then((index) {
+                  showMenuDialog(context, index == 1);
+                });
+              },
             ),
-            Padding(
-              padding: const EdgeInsets.only(right: 15.0),
-              child: buildIcon(
-                icon: Icons.more_horiz,
-                onTap: () {
-                  SpHelper.getTheme().then((index) {
-                    showMenuDialog(context, index == 1);
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-        body: FutureBuilder(
-            future: loadCacheData(),
-            builder: (context, AsyncSnapshot snapShot) {
-              if (snapShot.connectionState == ConnectionState.done) {
-                if (snapShot.hasError) return Text("加载资源失败 ${snapShot.error}");
-                if (snapShot.data == null || snapShot.data.isEmpty) {
-                  return buildEmpty();
-                }
-                //转换
-                return ShelfListWidget(snapShot.data);
-              }
-              return buildLoading();
-            }));
+          ),
+        ],
+      ),
+      body: ShelfMainWidget(),
+    );
   }
 
   showMenuDialog(BuildContext context, bool isMoon) async {
@@ -113,6 +105,7 @@ class ShelfScene extends StatelessWidget {
         ]);
     switch (result) {
       case 0:
+        showProgressDialog(context);
         break;
       case 1:
         var click = !isMoon;
@@ -121,13 +114,45 @@ class ShelfScene extends StatelessWidget {
         break;
     }
   }
+}
 
-  loadCacheData() async {
-    return await SpHelper.getBookShelfDatas();
+//总界面，监听数据变化实时改变界面
+class ShelfMainWidget extends StatefulWidget {
+  @override
+  _ShelfMainWidgetState createState() => _ShelfMainWidgetState();
+}
+
+class _ShelfMainWidgetState extends State<ShelfMainWidget> {
+  List<BookData> bookDatas;
+  bool loading = true;
+
+  @override
+  void initState() {
+    eventBus.on<AddShelfEvent>().listen((data) async {
+      print("======书本变动=======");
+      loadCacheData();
+    });
+    loadCacheData();
+    super.initState();
   }
 
-  buildEmpty() {
-    return Center(child: TextUtil.build("空空如野", color: Colors.black87));
+  @override
+  Widget build(BuildContext context) {
+    if (loading) return buildLoading();
+    if (bookDatas == null || bookDatas.isEmpty) {
+      return buildEmpty();
+    }
+    return ShelfListWidget(bookDatas);
+  }
+
+  loadCacheData() async {
+    loading = true;
+    bookDatas = await SpHelper.getBookShelfDatas();
+    if (mounted)
+      setState(() {
+        print(bookDatas);
+        loading = false;
+      });
   }
 
   buildLoading() {
@@ -138,6 +163,11 @@ class ShelfScene extends StatelessWidget {
   }
 }
 
+buildEmpty() {
+  return Center(child: TextUtil.build("空空如野", color: Colors.black87));
+}
+
+//列表界面
 class ShelfListWidget extends StatefulWidget {
   final List<BookData> bookDatas;
 
@@ -148,7 +178,8 @@ class ShelfListWidget extends StatefulWidget {
 }
 
 //删除书籍需要 eventBus.fire(AddShelfEvent(false));
-class _ShelfListWidgetState extends State<ShelfListWidget> {
+class _ShelfListWidgetState extends State<ShelfListWidget>
+    with AutomaticKeepAliveClientMixin {
   GlobalKey<RefreshHeaderState> _headerKey = GlobalKey<RefreshHeaderState>();
   String error;
 
@@ -162,14 +193,25 @@ class _ShelfListWidgetState extends State<ShelfListWidget> {
   }
 
   @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return buildList();
+    return widget.bookDatas.isEmpty ? buildEmpty() : buildList();
   }
 
   Future<void> refreshData() async {
     error = null;
+    if (widget.bookDatas == null || widget.bookDatas.isEmpty) return;
     StringBuffer buffer = StringBuffer();
     for (BookData bookData in widget.bookDatas) {
+      if (bookData.bookId == null || bookData.bookId.isEmpty) {
+        continue;
+      }
       buffer.write(bookData.bookId);
       buffer.write(",");
     }
@@ -206,13 +248,23 @@ class _ShelfListWidgetState extends State<ShelfListWidget> {
   Widget buildList() {
     return EasyRefresh(
       behavior: ScrollOverBehavior(),
-      refreshHeader: buildHeader(),
-      child: ListView.builder(
-        itemCount: widget.bookDatas.length,
-        itemExtent: 75,
+      refreshHeader: buildHeader(_headerKey, error: error),
+      child: ListView.separated(
+        itemCount: widget.bookDatas.length + 1,
         itemBuilder: (context, index) {
-          return buildItem(index, widget.bookDatas[index]);
+          if (index == 0)
+            return Container(
+              height: 30,
+              child: Center(child: TextUtil.buildRandomText()),
+            );
+          return Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child: buildItem(index - 1, widget.bookDatas[index - 1]),
+          );
         },
+        separatorBuilder: (context, index) => Divider(
+              height: 1.0,
+            ),
       ),
       onRefresh: refreshData,
       //loadMore: (){},
@@ -220,7 +272,27 @@ class _ShelfListWidgetState extends State<ShelfListWidget> {
   }
 
   Widget buildItem(int index, BookData bookData) {
-    return InkWell(
+    return Dismissible(
+      key: Key(bookData.bookId),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: Colors.redAccent,
+        alignment: Alignment(1, 0),
+        child: Text("左滑删除"),
+      ),
+      onDismissed: (direction) {
+        setState(() {
+          widget.bookDatas.removeAt(index);
+        });
+        SpHelper.clearBookInShelf(bookData);
+        Toast.show("删除${bookData.bookName}");
+      },
+      child: buildItemBody(index, bookData),
+    );
+  }
+
+  Widget buildItemBody(int index, BookData bookData) {
+    return ListTile(
       onTap: () {
         bookData.isUpdate = false;
         //阅读
@@ -236,42 +308,47 @@ class _ShelfListWidgetState extends State<ShelfListWidget> {
         setState(() {});
         SpHelper.saveShelfBookUpdate(bookData);
       },
-      onLongPress: () {},
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5.0),
-        child: ListTile(
-          leading: CoverImage(
-            bookData.coverUrl,
-            width: 45,
-            height: 70,
-          ),
-          title: TextUtil.build(bookData.bookName,
-              fontSize: 16, fontWeight: FontWeight.w500),
-          subtitle: TextUtil.buildOverFlow(
-              "${StringAmend.getTimeDuration(bookData.lastUpdate)}   ${bookData.lastChapterInfo}",
-              maxLines: 1),
-          trailing: bookData.isUpdate
-              ? TextUtil.buildBorder("new",
-                  color: Colors.white,
-                  background: Colors.red[300],
-                  fontSize: 6.0)
-              : Container(
-                  width: 10,
-                ),
-        ),
+      onLongPress: showDeleteManageDialog,
+      leading: CoverImage(
+        bookData.coverUrl,
+        width: 48,
       ),
+      title: TextUtil.build(bookData.bookName,
+          fontSize: 16, fontWeight: FontWeight.w500),
+      subtitle: TextUtil.buildOverFlow(
+          "${StringAmend.getTimeDuration(bookData.lastUpdate)}   ${bookData.lastChapterInfo}",
+          maxLines: 1),
+      trailing: bookData.isUpdate
+          ? TextUtil.buildBorder("new",
+              color: Colors.white, background: Colors.red[300], fontSize: 6.0)
+          : Container(
+              width: 10,
+            ),
     );
   }
 
-  Widget buildHeader() {
-    return ClassicsHeader(
-      key: _headerKey,
-      refreshText: "下拉刷新",
-      refreshReadyText: "松开刷新",
-      refreshingText: "正在刷新...",
-      refreshedText: error ?? "刷新完成",
-      bgColor: Colors.transparent,
-      textColor: Colors.black,
+  void showDeleteManageDialog() {
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (BuildContext context, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
+        return DeleteManagePage(widget.bookDatas);
+      },
+      transitionDuration: Duration(milliseconds: 400),
+      transitionBuilder: (BuildContext context, Animation<double> animation1,
+          Animation<double> animation2, Widget child) {
+        return SlideTransition(
+          position:
+              Tween<Offset>(begin: Offset(-1.0, 0.0), end: Offset(0.0, 0.0))
+                  .animate(CurvedAnimation(
+                      parent: animation1, curve: Curves.fastOutSlowIn)),
+          child: child,
+        );
+      },
+      barrierDismissible: false,
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

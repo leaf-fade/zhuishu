@@ -7,9 +7,15 @@
 import 'dart:convert';
 import 'package:annotation_route/route.dart';
 import 'package:zhuishu/ui/main/discovery/book_categories_page.dart';
-import 'package:zhuishu/ui/main/shelf/book_list_page.dart';
+import 'package:zhuishu/ui/main/discovery/book_comment_page.dart';
+import 'package:zhuishu/ui/main/discovery/books_list_detail_page.dart';
+import 'package:zhuishu/ui/main/discovery/books_list_page.dart';
 import 'package:zhuishu/ui/main/discovery/book_categories_info_page.dart';
+import 'package:zhuishu/ui/main/discovery/book_comment_detail_page.dart';
 import 'package:zhuishu/ui/main/discovery/book_info_page.dart';
+import 'package:zhuishu/ui/main/discovery/rank_page.dart';
+import 'package:zhuishu/ui/main/shelf/author_books_page.dart';
+import 'package:zhuishu/ui/main/shelf/collect_books_page.dart';
 import 'package:zhuishu/ui/main/shelf/search_page.dart';
 import 'package:zhuishu/ui/reader/reader_scene.dart';
 
@@ -20,14 +26,32 @@ class ARouterInternalImpl extends ARouterInternal {
     'page://book_categories_page': [
       {'clazz': CategoriesPage}
     ],
-    'page://book_list_page': [
-      {'clazz': BookListPage}
+    'page://books_comment_page': [
+      {'clazz': BookCommentPage}
+    ],
+    'page://books_list_detail_page': [
+      {'clazz': BooksListDetailPage}
+    ],
+    'page://books_list_page': [
+      {'clazz': BooksListPage}
     ],
     'page://book_categories_info_page': [
       {'clazz': CategoriesInfoPage}
     ],
+    'page://books_comment_detail_page': [
+      {'clazz': BookCommentDetailPage}
+    ],
     'page://book_info_page': [
       {'clazz': BookInfoPage}
+    ],
+    'page://rank_page': [
+      {'clazz': RankPage}
+    ],
+    'page://author_books_page': [
+      {'clazz': BookListPage}
+    ],
+    'page://books_list_collect_page': [
+      {'clazz': BooksListCollectPage}
     ],
     'page://search_page': [
       {'clazz': SearchPage}
@@ -60,12 +84,24 @@ class ARouterInternalImpl extends ARouterInternal {
     switch (clazz) {
       case CategoriesPage:
         return new CategoriesPage(option);
-      case BookListPage:
-        return new BookListPage(option);
+      case BookCommentPage:
+        return new BookCommentPage(option);
+      case BooksListDetailPage:
+        return new BooksListDetailPage(option);
+      case BooksListPage:
+        return new BooksListPage(option);
       case CategoriesInfoPage:
         return new CategoriesInfoPage(option);
+      case BookCommentDetailPage:
+        return new BookCommentDetailPage(option);
       case BookInfoPage:
         return new BookInfoPage(option);
+      case RankPage:
+        return new RankPage(option);
+      case BookListPage:
+        return new BookListPage(option);
+      case BooksListCollectPage:
+        return new BooksListCollectPage(option);
       case SearchPage:
         return new SearchPage(option);
       case ReaderScene:

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'dart:async';
 
-import 'package:zhuishu/model/url.dart';
+import 'package:zhuishu/ui/base/url.dart';
 
 /*
 * 网络工具
@@ -115,5 +115,10 @@ class Error {
   Error(errorCode, msg) {
     this.errorCode = errorCode;
     this.msg = msg;
+  }
+
+  @override
+  String toString() {
+    return msg;
   }
 }

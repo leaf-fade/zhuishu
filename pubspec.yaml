@@ -22,7 +22,9 @@ dependencies:
   connectivity: ^0.4.3+1
   path_provider: ^0.4.1
   event_bus: ^1.1.0
+  screen: ^0.0.5
   # simple_permissions: ^0.1.9
+  palette_generator: any
 
   my_icon:
     path: my_icon/   # 在这里引入第三方icon库

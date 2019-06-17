@@ -17,15 +17,19 @@ class _FoldTextViewState extends State<FoldTextView> {
   bool isShow = true;
   @override
   void initState() {
-    double width = Screen.width - 30.0;
-    //计算是否需要折叠
-    TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
-    textPainter.text =
-        TextSpan(text: widget.str, style: TextStyle(fontSize: 14,color: Colors.grey),);
-    textPainter.layout(maxWidth: width);
-    //获取占满这个区域的String的最后一个字符的index(第几个就返回几)
-    int end = textPainter.getPositionForOffset(Offset(width, 50.0)).offset;
-    if(widget.str.length <= end) {
+    if(widget.str.length > 50){
+      double width = Screen.width - 30.0;
+      //计算是否需要折叠
+      TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
+      textPainter.text =
+          TextSpan(text: widget.str, style: TextStyle(fontSize: 14,color: Colors.grey),);
+      textPainter.layout(maxWidth: width);
+      //获取占满这个区域的String的最后一个字符的index(第几个就返回几)
+      int end = textPainter.getPositionForOffset(Offset(width, 50.0)).offset;
+      if(widget.str.length <= end) {
+        isShow = false;
+      }
+    }else{
       isShow = false;
     }
     super.initState();

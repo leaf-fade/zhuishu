@@ -94,7 +94,7 @@ class Chapter {
 * 章节信息，带具体文字内容
 * */
 class ChapterInfo{
-  int chapterId;
+  int chapterId ;
   int nextChapterId;
   int preChapterId;
   String bookName;
@@ -103,9 +103,10 @@ class ChapterInfo{
   String title;
   String content;
   List<String> pageInfo;
+  int state = 0;
 
-  ChapterInfo({this.chapterId,this.bookName,this.bookId ,this.link, this.title, this.content}):
-   this.nextChapterId =chapterId+1, this.preChapterId = chapterId-1;
+  ChapterInfo({this.chapterId,this.bookName,this.bookId ,this.link, this.title, this.content, this.state = 0}):
+   this.nextChapterId =(chapterId??0) + 1, this.preChapterId = (chapterId??0)-1;
 
   int get pageCount => pageInfo.length;
 

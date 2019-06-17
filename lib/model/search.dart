@@ -45,7 +45,10 @@ class HotWord {
 
   HotWord.fromString(String str){
     var jsonRes = json.decode(str);
-    HotWord.fromJson(jsonRes);
+    isNew = jsonRes['isNew'];
+    soaring = jsonRes['soaring'];
+    times = jsonRes['times'];
+    word = jsonRes['word'];
   }
 
   @override
@@ -81,7 +84,8 @@ class HotBook{
 
   HotBook.fromString(String str) {
     var jsonRes = json.decode(str);
-    HotBook.fromJson(jsonRes);
+    book = jsonRes['book'];
+    word = jsonRes['word'];
   }
 
   @override

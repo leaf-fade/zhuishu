@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:zhuishu/ui/widget/cover_image.dart';
 import 'package:zhuishu/util/text.dart';
@@ -13,6 +13,8 @@ class BookListTile extends StatelessWidget {
   final String shortIntro;
   final String minor;
   final String follower; //人气
+  final double height;
+  final double defaultHeight = 100.0;
 
   BookListTile(
       {this.icon = "",
@@ -20,36 +22,39 @@ class BookListTile extends StatelessWidget {
       this.author = "",
       this.shortIntro = "",
       this.minor = "",
-      this.follower = "0"});
+      this.follower = "0",
+      this.height = 100.0,
+      });
 
   @override
   Widget build(BuildContext context) {
+    double ratio = height/defaultHeight;
     Widget intro = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Row(
           children: <Widget>[
-            Icon(
+            ratio < 1? Container() : Icon(
               Icons.person,
               color: Colors.grey,
               size: 13.0,
             ),
             SizedBox(
-                width: 100.0,
-                child: TextUtil.buildOverFlow(author, fontSize: 12.0)),
+                width: 100.0*ratio,
+                child: TextUtil.buildOverFlow(author, fontSize: ratio < 1 ? 11.0 : 12.0)),
           ],
         ),
         Row(
           children: <Widget>[
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
-              child: TextUtil.buildBorder(minor??"",
+            minor.isEmpty? SizedBox():Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.0*ratio, horizontal: 5.0*ratio),
+              child: TextUtil.buildBorder(minor,
                   color: Colors.grey,
                   background: Color(0xffe7dcbe),
                   fontSize: 6.0),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+            follower.isEmpty? SizedBox():Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.0*ratio, horizontal: 5.0*ratio),
               child: TextUtil.buildBorder("$follower人气",
                   color: Colors.white,
                   background: Color(0xffeae0e0),
@@ -64,13 +69,14 @@ class BookListTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         TextUtil.build(name,
-            color: Colors.black87, fontWeight: FontWeight.w600, fontSize: 18.0),
+            color: Colors.black87, fontWeight: FontWeight.w600, fontSize: ratio < 1 ? 14.0 : 18.0),
         SizedBox(
-          height: 10.0,
+          height: 10.0*ratio,
         ),
         TextUtil.buildOverFlow(
           shortIntro,
           maxLines: 2,
+          fontSize: ratio < 1 ? 13.0 : 14.0,
         ),
         intro,
       ],
@@ -79,15 +85,15 @@ class BookListTile extends StatelessWidget {
       child: Row(
         children: <Widget>[
           Container(
-              width: 84,
-              height: 100,
-              padding: EdgeInsets.only(left: 15.0),
+              width: 84*ratio,
+              height: 100*ratio,
+              padding: EdgeInsets.only(left: 15.0*ratio),
               child: CoverImage(
                 icon,
               )),
           Expanded(
               child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
+            padding: EdgeInsets.symmetric(horizontal: 15.0*ratio, vertical: 5.0),
             child: body,
           )),
         ],
@@ -127,4 +133,42 @@ class NormalListTile extends StatelessWidget {
   }
 
   NormalListTile({this.left, this.right, this.height = 50.0, this.onTap});
+}
+
+
+/*
+* 单选按钮组
+* */
+class HeadCellItemGroup extends StatelessWidget {
+  final List<String> texts;
+  final ValueChanged<String> onCheck;
+  final String checkText;
+
+  HeadCellItemGroup({this.texts, this.onCheck, this.checkText});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: texts.map((String text) {
+        return buildItem(
+          text: text,
+          initValue: text == checkText,
+          onPressed: () {
+            onCheck(text);
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  Widget buildItem({bool initValue, VoidCallback onPressed, String text}) {
+    return InkWell(
+      onTap: onPressed,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+        child:
+        TextUtil.build(text, color: initValue ? Colors.red : Colors.grey),
+      ),
+    );
+  }
 }

@@ -24,9 +24,6 @@ class ThemeEvent{
 /*
 * 下载进度
 * */
-/*
-* 主题
-* */
 class DownloadEvent{
   int downloadCount;
   int totalCount;

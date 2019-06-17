@@ -27,6 +27,14 @@ class SpUtil{
     return sp.getStringList(key);
   }
 
+  static setStringListNull(String key) async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    sp.setStringList(key, null);
+  }
+
+  /*
+  * 存在bug，类似的也会删除，列表不要使用
+  * */
   static remove(String key) async {
     SharedPreferences sp = await SharedPreferences.getInstance();
     sp.remove(key);
@@ -77,6 +85,9 @@ class SpHelper {
   }
 
   //存书架的书籍id列表
+  /*
+  * 单个存储颇为麻烦，建议bean转换json存储，不过好处是可以单个修改字段，bean需要整体替换
+  * */
   static saveBookIntoShelf(BookData data) async {
     //先存id,存入列表中
     List<String> bookIdList = await SpUtil.getStringList("bookShelfList")??[];
@@ -90,7 +101,7 @@ class SpHelper {
     saveShelfBookChapterId(data.bookId, data.chapterId);
     saveBookSource(data.bookId, data.sourceId);
     //存列表相关
-    SpUtil.set(data.bookId + "bookName", data.bookName);
+    SpUtil.set(data.bookId + "bookName", data.bookName??"");
     SpUtil.set(data.bookId + "lastUpdate", data.lastUpdate);
     if (data.coverUrl != null && data.coverUrl.isNotEmpty) {
       SpUtil.set(data.bookId + "coverUrl", data.coverUrl);
@@ -105,21 +116,23 @@ class SpHelper {
 
 
   static clearBookInShelf(BookData data) async {
-    List<String> bookIdList = await SpUtil.getStringList("bookShelfList");
+    List<String> bookIdList = await SpUtil.getStringList("bookShelfList")??[];
     //更新为最新的
     if (bookIdList.contains(data.bookId)) {
       bookIdList.remove(data.bookId);
+      print(data.bookId + "chapterId");
+
       //源相关
-      SpUtil.remove(data.bookId + "chapterId");
-      SpUtil.remove(data.bookId + "sourceId");
+      SpUtil.set(data.bookId + "chapterId",null);
+      SpUtil.set(data.bookId + "sourceId",null);
       //列表相关
-      SpUtil.remove(data.bookId + "bookName");
-      SpUtil.remove(data.bookId + "lastUpdate");
-      SpUtil.remove(data.bookId + "coverUrl");
-      SpUtil.remove(data.bookId + "lastChapterInfo");
-      SpUtil.remove(data.bookId + "lastReadDate");
-      SpUtil.remove(data.bookId + "isUpdate");
-      SpUtil.remove(data.bookId + "isEnd");
+      SpUtil.set(data.bookId + "bookName",null);
+      SpUtil.set(data.bookId + "lastUpdate",null);
+      SpUtil.set(data.bookId + "coverUrl",null);
+      SpUtil.set(data.bookId + "lastChapterInfo",null);
+      SpUtil.set(data.bookId + "lastReadDate",null);
+      SpUtil.set(data.bookId + "isUpdate",null);
+      SpUtil.set(data.bookId + "isEnd",null);
     }
 
     SpUtil.set("bookShelfList", bookIdList);

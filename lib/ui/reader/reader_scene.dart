@@ -1,8 +1,7 @@
-import 'package:annotation_route/route.dart';
 import 'package:flutter/material.dart';
 import 'package:zhuishu/model/book_shelf_data.dart';
 import 'package:zhuishu/model/book_source.dart';
-import 'package:zhuishu/router/router_const.dart';
+import 'package:zhuishu/router/index.dart';
 import 'package:zhuishu/ui/base/base_page.dart';
 import 'package:zhuishu/ui/base/my_color.dart';
 import 'package:zhuishu/ui/reader/reader_menu.dart';
@@ -14,6 +13,7 @@ import 'package:zhuishu/util/screen.dart';
 import 'package:zhuishu/util/sp.dart';
 import 'package:zhuishu/util/string.dart';
 import 'package:zhuishu/util/toast.dart';
+import 'package:screen/screen.dart' as display;
 
 /*
 * 阅读界面
@@ -118,12 +118,14 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
       }
       setState(() {});
     });
+    display.Screen.keepOn(true);
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
+    display.Screen.keepOn(false);
     _pageController.dispose();
   }
 
@@ -178,6 +180,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
                   (nextChapter != null ? nextChapter.pageCount : 0),
               itemBuilder: (context, index) {
                 ChapterInfo chapter;
+                print("=============");
                 var preLength = preChapter != null ? preChapter.pageCount : 0;
                 var curLength = curChapter.pageCount;
                 if (index < preLength) {
@@ -190,6 +193,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
                   chapter = nextChapter;
                   index = index - preLength - curLength;
                 }
+                print("${chapter.chapterId}");
                 return ReaderView(
                   chapter.title,
                   _fontSize,
@@ -197,6 +201,14 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
                   chapter.pageInfo[index],
                   "${index + 1}/${chapter.pageInfo.length}",
                   bookColor: textColor,
+                  state: chapter.state,
+                  onTap: (){
+                    setState((){
+                      curChapter.state = 1;
+                    });
+                    //重新网络请求
+                    resetData(curChapter.chapterId);
+                  },
                 );
               },
               controller: _pageController,
@@ -269,8 +281,11 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
           catalogCallback: (String link, int chapterId) {
             preChapter = null;
             nextChapter = null;
+            setState((){
+              curChapter.state = 1;
+            });
             //重新网络请求
-            resetData(chapterId);
+               resetData(chapterId);
           },
           settingCallback: setting,
           sourceCallback: (index) {
@@ -278,7 +293,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
             preChapter = null;
             nextChapter = null;
             //加载数据
-            reloadData(_sourceList[index].id, curChapter.chapterId);
+            reloadSourceData(_sourceList[index].id, curChapter.chapterId);
           },
         ),
       ),
@@ -379,12 +394,20 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
     return sourceId;
   }
 
-  void reloadData(String sourceId, int chapterId) {
-    initLoadingState();
+  void reloadSourceData(String sourceId, int chapterId) {
+    setState((){
+      curChapter.state = 1;
+    });
     String uri = "/atoc/$sourceId?view=chapters";
     HttpUtil.getJson(uri).then((data) {
       print("=========2. 选择源章节列表 ============");
+      var _oldSourceCount = _sourceChapters.chapters.length;
       _sourceChapters = SourceChapters.fromJson(data);
+      //章节数不同则加载第一章
+      if(_sourceChapters.chapters.length != _oldSourceCount){
+        chapterId = 0;
+        curChapter.chapterId = 0;
+      }
       resetData(chapterId);
     }).catchError((error) {
       print(error.toString());
@@ -424,32 +447,36 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
   }
 
   saveReadHistory() async{
+    print("==========1=============");
     if(readHistory == null){
       readHistory = await SpUtil.getStringList(READ_HISTORY);
     }
-    print(readHistory.length);
     BookData data = getBookData();
-    for(String str in readHistory ?? []){
-      if(str.contains(data.bookId)){
-        readHistory.remove(str);
-        break;
+    if(readHistory!=null && readHistory.isNotEmpty){
+      print("==========2=============");
+      for(String str in readHistory ?? []){
+        if(str.contains(data.bookId)){
+          readHistory.remove(str);
+          break;
+        }
       }
+    }else{
+      print("==========3=============");
+      readHistory = [];
     }
     readHistory.add(data.toString());
     SpUtil.set(READ_HISTORY, readHistory);
-
   }
 
   Future<ChapterInfo> fetchChapter(int chapterId) async {
     ChapterInfo chapterInfo = await accessPageData(chapterId);
-    if (chapterInfo != null) {
+    if (chapterInfo != null && chapterInfo.state == 0) {
       chapterInfo.pageInfo = buildPageListData(dealData(chapterInfo.content));
     }
     return chapterInfo;
   }
 
   resetData(int chapterId) async {
-    initLoadingState();
     pageIndex = 0;
     curChapter = await fetchChapter(chapterId);
     if (curChapter != null) {
@@ -480,6 +507,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
   Future<ChapterInfo> accessPageData(int chapterId) async {
     if (chapterId < 0 || chapterId >= _sourceChapters.chapters.length)
       return null;
+    SpHelper.saveShelfBookChapterId(curChapter.bookId,curChapter.chapterId);
     ChapterInfo chapterInfo;
     await FileUtil.readFile(widget.bookId, chapterId).then((str) async {
       if (str == null || str.isEmpty) {
@@ -502,7 +530,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
 
   Future<ChapterInfo> loadNetData(String link, int chapterId) async {
     print("=========3.  网络加载 ====================");
-    ChapterInfo chapterInfo;
+    ChapterInfo chapterInfo = ChapterInfo(state: 1);
     String url = "http://chapterup.zhuishushenqi.com/chapter/" + StringAmend.urlEncode(link);
     await HttpUtil.getJson(url).then((data) {
       var ch = data["chapter"];
@@ -525,7 +553,8 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
       print(error.toString());
       if (pageState != PageState.Fail) {
         Toast.show(error is Error ? error.msg : "网络请求失败");
-        loadFailState();
+        chapterInfo.state = 2;
+        chapterInfo.pageInfo = [""];
       }
     });
     return chapterInfo;

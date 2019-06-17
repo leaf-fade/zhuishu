@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:zhuishu/util/net.dart';
-import 'package:zhuishu/util/sp.dart';
 import 'package:zhuishu/util/text.dart';
 import 'package:zhuishu/util/toast.dart';
 import 'package:connectivity/connectivity.dart';
@@ -64,14 +63,14 @@ abstract class BasePageState<T extends StatefulWidget> extends State<T> {
 
   @override
   void setState(fn) {
-    if(mounted){
+    if (mounted) {
       super.setState(fn);
     }
   }
 
   @override
   void dispose() {
-    _connectivitySubscription.cancel();
+    _connectivitySubscription?.cancel();
     super.dispose();
   }
 
@@ -119,9 +118,10 @@ abstract class BasePageState<T extends StatefulWidget> extends State<T> {
 
   buildLoading() {
     return Center(
-        child: CupertinoActivityIndicator(
-      radius: 15.0,
-    ));
+      child: CupertinoActivityIndicator(
+        radius: 15.0,
+      ),
+    );
   }
 
   buildLoadFail() {
@@ -139,7 +139,8 @@ abstract class BasePageState<T extends StatefulWidget> extends State<T> {
               initLoadingState();
               loadData();
             },
-            child: TextUtil.build("刷新", fontWeight: FontWeight.w500, fontSize: 16,color: Colors.white),
+            child: TextUtil.build("刷新",
+                fontWeight: FontWeight.w500, fontSize: 16, color: Colors.white),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0)),
           ),

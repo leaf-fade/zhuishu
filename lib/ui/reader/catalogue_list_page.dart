@@ -4,8 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:zhuishu/model/book_shelf_data.dart';
 import 'package:zhuishu/model/book_source.dart';
-import 'package:zhuishu/router/route_util.dart';
-import 'package:zhuishu/router/router_const.dart';
+import 'package:zhuishu/router/index.dart';
 import 'package:zhuishu/ui/base/base_page.dart';
 import 'package:zhuishu/ui/widget/drag.dart';
 import 'package:zhuishu/util/sp.dart';
@@ -73,12 +72,11 @@ class _CatalogueListViewState extends BasePageState<CatalogueListView> {
 
   @override
   Widget buildBody() {
+    if(chapters==null) return Container();
     return Column(
       children: <Widget>[
         buildTitle(),
-        Divider(
-          color: Colors.grey,
-        ),
+        Divider(height: 1,),
         Expanded(
           child: buildList(),
         ),
@@ -137,8 +135,7 @@ class _CatalogueListViewState extends BasePageState<CatalogueListView> {
             fontWeight: FontWeight.w500),
       ),
       onTap: () {
-        if(widget.bookData.chapterId == index) return;
-        print("==============");
+        if(widget.bookData.chapterId == index&&widget.callback != null) return;
         //获取保存的书籍信息
         //回调方法，返回选择的章节 link
         if (widget.callback != null) {
@@ -162,16 +159,19 @@ class _CatalogueListViewState extends BasePageState<CatalogueListView> {
   @override
   void loadData() {
     chapters = widget.chapters;
+    //重阅读器中来，已有数据
     if (chapters != null) {
       loadSuccess();
       return;
     }
     SpHelper.getBookSource(widget.bookData.bookId).then((source) async{
       var bookSource = source;
+      //本地没存储源的id
       if(source == null){
         //网络加载获取
         bookSource = await loadSourceList();
       }
+      print(bookSource);
       String url = "/atoc/$bookSource?view=chapters";
       netConnect(url, (data) {
         print("===========加载目录============");
@@ -182,6 +182,7 @@ class _CatalogueListViewState extends BasePageState<CatalogueListView> {
 
   Future<String> loadSourceList() async{
     String uri = "/atoc?view=summary&book=${widget.bookData.bookId}";
+    String id;
     await netConnect(uri, (data) {
       print("=========选择书籍源 ============");
       List list = data == null ? [] : data;
@@ -190,9 +191,9 @@ class _CatalogueListViewState extends BasePageState<CatalogueListView> {
         _sourceList.add(BookSource.fromJson(source));
       }
       SpHelper.saveBookSource(widget.bookData.bookId, _sourceList[0].id);
-      return _sourceList[0].id;
-    },checkOk: ()=>true);
-    return null;
+      id = _sourceList[0].id;
+    },checkOk: ()=>false);
+    return id;
   }
 
   void loadSuccess() {

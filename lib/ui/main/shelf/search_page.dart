@@ -1,13 +1,12 @@
-import 'package:annotation_route/route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyrefresh/easy_refresh.dart';
+import 'package:my_icon/my_icon.dart';
 import 'package:zhuishu/model/categories_info.dart';
 import 'package:zhuishu/model/search.dart';
-import 'package:zhuishu/router/route.dart';
-import 'package:zhuishu/router/route_util.dart';
-import 'package:zhuishu/router/router_const.dart';
+import 'package:zhuishu/router/index.dart';
 import 'package:zhuishu/ui/base/base_page.dart';
 import 'package:zhuishu/ui/widget/book_list_tile.dart';
+import 'package:zhuishu/ui/widget/refresh.dart';
 import 'package:zhuishu/util/icon.dart';
 import 'package:zhuishu/util/net.dart';
 import 'package:zhuishu/util/sp.dart';
@@ -25,6 +24,7 @@ bool isResult = false;
 @ARoute(url: PageUrl.SEARCH_PAGE)
 class SearchPage extends StatefulWidget {
   final RouteOption option;
+
   @override
   _SearchPageState createState() => _SearchPageState();
 
@@ -316,7 +316,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 ],
               ),
-              onTap: (){
+              onTap: () {
                 RouteUtil.push(context, PageUrl.BOOK_INFO_PAGE,
                     params: {"id": hotBooks[index].book});
               },
@@ -330,10 +330,10 @@ class _SearchPageState extends State<SearchPage> {
               children: List.generate(
                   col,
                   (colIndex) => Container(
-                    padding: EdgeInsets.symmetric(vertical: 5.0),
-                    child: buildTableItem(
-                        startIndex + (rowIndex + 1) * (colIndex + 1)),
-                  )),
+                        padding: EdgeInsets.symmetric(vertical: 5.0),
+                        child: buildTableItem(
+                            startIndex + (rowIndex + 1) * (colIndex + 1)),
+                      )),
             ));
   }
 
@@ -370,18 +370,29 @@ class _SearchPageState extends State<SearchPage> {
           AutoTip tip = tips[index];
           return InkWell(
             child: Container(
-              height: 40,
+              height: 50,
               padding: EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
                 children: <Widget>[
                   Icon(
-                    tip.tag == "bookname" ? Icons.book : Icons.person,
+                    tip.tag == "bookname"
+                        ? Icons.book
+                        : (tip.tag == "bookauthor" ? Icons.person : MyIcon.tag),
                     color: Colors.grey[300],
                   ),
                   SizedBox(
                     width: 10.0,
                   ),
-                  TextUtil.build(tip.text),
+                  TextUtil.buildOverFlow(tip.text),
+                  tip.contentType == "picture"
+                      ? Padding(
+                          padding: EdgeInsets.only(left: 10.0),
+                          child: TextUtil.buildBorder("漫画",
+                              color: Colors.white,
+                              background: Colors.red[300],
+                              fontSize: 8.0),
+                        )
+                      : SizedBox(),
                 ],
               ),
             ),
@@ -392,13 +403,19 @@ class _SearchPageState extends State<SearchPage> {
                 RouteUtil.push(context, PageUrl.BOOK_INFO_PAGE,
                     params: {"id": tip.id});
               } else if (tip.tag == "bookauthor") {
-                RouteUtil.push(context, PageUrl.BOOK_LIST_PAGE, params: {"id": tip.text});
+                RouteUtil.push(context, PageUrl.AUTHOR_BOOKS_PAGE,
+                    params: {"title": tip.text});
+              } else {
+                RouteUtil.push(context, PageUrl.AUTHOR_BOOKS_PAGE,
+                    params: {"title": tip.text, "type": "tag"});
               }
             },
           );
         },
         separatorBuilder: (context, index) {
-          return Divider();
+          return Divider(
+            height: 1,
+          );
         });
   }
 
@@ -417,7 +434,7 @@ class _SearchPageState extends State<SearchPage> {
   Future<List<AutoTip>> autoQuery(String keyword) async {
     String url = "/book/auto-suggest?query= $keyword";
     List<AutoTip> lists = [];
-    var data = await HttpUtil.getJson(url).catchError((error)=>error);
+    var data = await HttpUtil.getJson(url).catchError((error) => error);
     if (data is! Error) {
       lists = AutoTip.getAutoTips(data["keywords"]);
     }
@@ -458,6 +475,13 @@ class _SearchPageState extends State<SearchPage> {
     SpUtil.getStringList(SEARCH_HISTORY).then((List<String> list) {
       historys = list ?? [];
     });
+  }
+
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
   }
 }
 
@@ -536,7 +560,9 @@ class _SuggestionCellState extends State<SuggestionCell> {
           SizedBox(
             height: 10.0,
           ),
-          Divider(),
+          Divider(
+            height: 1,
+          ),
         ],
       ),
     );
@@ -556,10 +582,11 @@ class SearchContent extends StatefulWidget {
 }
 
 class _SearchContentState extends BasePageState<SearchContent> {
-  List<BookIntro> books;
+  List<BookIntro> books = [];
   int total;
   int start = 0;
   final int limit = 20;
+  String error;
   GlobalKey<RefreshHeaderState> _headerKey = GlobalKey<RefreshHeaderState>();
   GlobalKey<RefreshFooterState> _footerKey = GlobalKey<RefreshFooterState>();
 
@@ -573,8 +600,8 @@ class _SearchContentState extends BasePageState<SearchContent> {
   Widget buildBody() {
     return EasyRefresh(
       behavior: ScrollOverBehavior(),
-      refreshHeader: buildHeader(),
-      refreshFooter: buildFooter(),
+      refreshHeader: buildHeader(_headerKey,error: error),
+      refreshFooter: buildFooter(_footerKey,error: error),
       onRefresh: onRefresh,
       loadMore: loadMore,
       autoLoad: true,
@@ -604,76 +631,41 @@ class _SearchContentState extends BasePageState<SearchContent> {
 
   @override
   void loadData() {
-    String url = "/book/fuzzy-search?query=${widget.keyWord}&start=$start&limit=$limit";
-    HttpUtil.getJson(url).then((data) {
+    onNetConnect(init: true,clear: true);
+  }
+
+
+  Future<void> onNetConnect({bool init = false, bool clear = false}) async{
+    error = null;
+    String url =
+        "/book/fuzzy-search?query=${widget.keyWord}&start=$start&limit=$limit";
+    await HttpUtil.getJson(url).then((data) {
       CategoriesInfo info = CategoriesInfo.fromJson(data);
-      books = info.books;
+      if(clear) books.clear();
+      books.addAll(info.books);
       total = info.total;
       loadSuccessState();
-      historys.remove(widget.keyWord);
-      historys.add(widget.keyWord);
-      SpUtil.set(SEARCH_HISTORY, historys);
+      if(init){
+        historys.remove(widget.keyWord);
+        historys.add(widget.keyWord);
+        SpUtil.set(SEARCH_HISTORY, historys);
+      }
     }).catchError((error) {
       print(error.toString());
       Toast.show(error is Error ? error.msg : "网络请求失败");
-      loadFailState();
+      init? loadFailState() : error = error.toString();
     });
   }
 
-  Future<void> onRefresh() async{
+
+  Future<void> onRefresh() async {
     start = 0;
-    String url = "/book/fuzzy-search?query=${widget.keyWord}&start=$start&limit=$limit";
-    await HttpUtil.getJson(url).then((data) {
-      CategoriesInfo info = CategoriesInfo.fromJson(data);
-      books = info.books;
-      total = info.total;
-      setState((){});
-    }).catchError((error){
-      Toast.show(error is Error ? error.msg : "网络请求失败");
-    });
+    await onNetConnect(clear: true);
   }
 
-  bool isLoadMore = false;
-  Future<void> loadMore() async{
-    if(start >= total) return null;
-    if(isLoadMore) return null;
-    isLoadMore = true;
+  Future<void> loadMore() async {
+    if (start + limit >= total) return null;
     start += limit;
-    String url = "/book/fuzzy-search?query=${widget.keyWord}&start=$start&limit=$limit";
-    await HttpUtil.getJson(url).then((data) {
-      CategoriesInfo info = CategoriesInfo.fromJson(data);
-      books.addAll(info.books);
-      total = info.total;
-      isLoadMore = false;
-      setState((){});
-    }).catchError((error){
-      isLoadMore = false;
-      Toast.show(error is Error ? error.msg : "网络请求失败");
-    });
-  }
-
-  Widget buildHeader() {
-    return ClassicsHeader(
-      key: _headerKey,
-      refreshText: "下拉刷新",
-      refreshReadyText: "松开刷新",
-      refreshingText: "正在刷新...",
-      refreshedText: "刷新完成",
-      bgColor: Colors.transparent,
-      textColor: Colors.black,
-    );
-  }
-
-  Widget buildFooter() {
-    return ClassicsFooter(
-      key:  _footerKey,
-      loadReadyText: "松开加载",
-      loadedText: "加载完成",
-      noMoreText: "没有更多数据了",
-      loadingText: "正在加载中...",
-      loadText: "上拉加载",
-      bgColor: Colors.transparent,
-      textColor: Colors.black,
-    );
+    await onNetConnect();
   }
 }

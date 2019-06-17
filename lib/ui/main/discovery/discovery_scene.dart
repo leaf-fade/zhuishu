@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_icon/my_icon.dart';
-import 'package:zhuishu/router/route_util.dart';
-import 'package:zhuishu/router/router_const.dart';
-import 'package:zhuishu/ui/main/discovery/book_categories_page.dart';
+import 'package:zhuishu/util/icon.dart';
+import 'package:zhuishu/router/index.dart';
 
 class DiscoveryScene extends StatelessWidget {
   final icons = [
@@ -17,7 +16,15 @@ class DiscoveryScene extends StatelessWidget {
       appBar: AppBar(
         title: Text("发现"),
         actions: <Widget>[
-          Icon(Icons.search),
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: buildIcon(
+              icon: Icons.search,
+              onTap: () {
+                RouteUtil.push(context, PageUrl.SEARCH_PAGE);
+              },
+            ),
+          ),
         ],
       ),
       body: ListView(
@@ -33,7 +40,17 @@ class DiscoveryScene extends StatelessWidget {
       title: Text(texts[index]),
       trailing: Icon(Icons.keyboard_arrow_right),
       onTap: (){
-        RouteUtil.push(context, PageUrl.BOOK_CATEGORIES_PAGE);
+        switch(index){
+          case 0:
+            RouteUtil.push(context, PageUrl.RANK_PAGE);
+            break;
+          case 1:
+            RouteUtil.push(context, PageUrl.BOOK_CATEGORIES_PAGE);
+            break;
+          case 2:
+            RouteUtil.push(context, PageUrl.BOOKS_LIST_PAGE);
+            break;
+        }
       },
     );
   }

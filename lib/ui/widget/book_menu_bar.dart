@@ -30,6 +30,7 @@ class BookMenuBar extends StatelessWidget {
               inactiveStyle: TextStyle(fontSize: 16, color: MyColor.divider),
               initActive: !isAdd,
               onTap: (active) {
+                eventBus.fire(AddShelfEvent(active));
                 if (active) {
                   bookData.lastReadDate = DateTime.now().millisecondsSinceEpoch;
                   //加入书架
@@ -78,6 +79,52 @@ class BookMenuBar extends StatelessWidget {
 }
 
 /*
+* 收藏按钮
+* */
+class SaveButton extends StatefulWidget {
+  final BookData bookData;
+  @override
+  _SaveButtonState createState() => _SaveButtonState();
+
+  SaveButton(this.bookData);
+}
+
+class _SaveButtonState extends State<SaveButton> {
+  //按键的状态和真实状态是相反的
+  bool add = false;
+
+  @override
+  void initState() {
+    eventBus.on<AddShelfEvent>().listen((data) {
+      add = data.isAdd;
+      if(mounted) setState(() {});
+    });
+    SpHelper.isAddToShelf(widget.bookData.bookId).then((isAdd) {
+      add = isAdd;
+      if(mounted) setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FlatButton(
+      onPressed: () {
+        add = !add;
+        eventBus.fire(AddShelfEvent(add));
+        if (add) {
+          //加入书架
+          SpHelper.saveBookIntoShelf(widget.bookData);
+        } else {
+          SpHelper.clearBookInShelf(widget.bookData);
+        }
+      },
+      child: Text(!add ? "收藏" : "不追了"),
+    );
+  }
+}
+
+/*
 * 点击后会变化的text
 * */
 class ChangeText extends StatefulWidget {
@@ -94,12 +141,12 @@ class ChangeText extends StatefulWidget {
 
   ChangeText(
       {this.key,
-        this.onTap,
-        this.activeText,
-        this.inactiveText,
-        this.activeStyle,
-        this.inactiveStyle,
-        this.initActive = true})
+      this.onTap,
+      this.activeText,
+      this.inactiveText,
+      this.activeStyle,
+      this.inactiveStyle,
+      this.initActive = true})
       : super(key: key);
 }
 
@@ -109,12 +156,17 @@ class _ChangeTextState extends State<ChangeText> {
   @override
   void initState() {
     active = widget.initActive;
-    eventBus.on<AddShelfEvent>().listen((data){
+    eventBus.on<AddShelfEvent>().listen((data) {
       setState(() {
         active = !data.isAdd;
       });
     });
     super.initState();
+  }
+
+  @override
+  void setState(fn) {
+    if (mounted) super.setState(fn);
   }
 
   @override
@@ -128,9 +180,6 @@ class _ChangeTextState extends State<ChangeText> {
       ),
       onTap: () {
         if (widget.onTap != null) widget.onTap(active);
-        setState(() {
-          active = !active;
-        });
       },
     );
   }

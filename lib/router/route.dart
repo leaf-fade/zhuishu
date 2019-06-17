@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 *
 * 一旦建立了新的路由，就需要执行2个脚本
 * 自动生成route.internal.dart文件脚本： flutter packages pub run build_runner build --delete-conflicting-outputs
+*
 * 清除之前生成的文件脚本： flutter packages pub run build_runner clean
 * */
 @ARouteRoot()

@@ -20,6 +20,10 @@ class MyIcon {
   static const IconData minSpace = const _MyIconData(0xe6c7);
   static const IconData midSpace = const _MyIconData(0xe6c8);
   static const IconData maxSpace = const _MyIconData(0xe6c6);
+
+  static const IconData tag = const _MyIconData(0xe71a);
+  static const IconData empty = const _MyIconData(0xe64e);
+  static const IconData love = const _MyIconData(0xe601);
 }
 
 class _MyIconData extends IconData {

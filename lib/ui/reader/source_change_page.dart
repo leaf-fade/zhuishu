@@ -44,7 +44,7 @@ class SourceChangePage extends StatelessWidget {
               child: Icon(MyIcon.menu, color: Colors.red[300]),
             ),
             title: TextUtil.build(sources[index].name,fontSize: 16, color: Colors.black87),
-            subtitle: TextUtil.build(sources[index].lastChapter),
+            subtitle: TextUtil.buildOverFlow(sources[index].lastChapter),
             trailing: index == curId ?Icon(Icons.check_circle,color: Colors.redAccent,) : null,
           ),
           onTap: (){

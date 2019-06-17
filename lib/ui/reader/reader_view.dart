@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:zhuishu/ui/widget/battery_view.dart';
 import 'package:zhuishu/util/screen.dart';
@@ -23,31 +24,68 @@ class ReaderView extends StatelessWidget {
   final String index;
   final double _size = 12.0;
   final Color bookColor;
+  final int state;
+  final VoidCallback onTap;
 
   ReaderView(this.title, this.fontSize, this.space, this.widget, this.index,
-      {this.bookColor});
+      {this.bookColor, this.state = 0,this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: Padding(
-      padding:
-          EdgeInsets.symmetric(vertical: paddingTop, horizontal: paddingStart),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+            vertical: paddingTop, horizontal: paddingStart),
+        child: state == 0 ? buildSuccess() : (state == 1 ? buildLoading(): buildLoadFail()),
+      ),
+    );
+  }
+
+  buildSuccess() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          height: top,
+          child: TextUtil.build(title, fontSize: _size),
+        ),
+        Expanded(
+          child: buildContainer(widget,
+              fontSize: fontSize, space: space, color: bookColor),
+        ),
+        buildBottom(),
+      ],
+    );
+  }
+
+  buildLoading() {
+    return Center(
+      child: CupertinoActivityIndicator(
+        radius: 15.0,
+      ),
+    );
+  }
+
+  buildLoadFail() {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Container(
-            height: top,
-            child: TextUtil.build(title, fontSize: _size),
+          Image.asset("images/icon_cartoon.png"),
+          SizedBox(
+            height: 30,
           ),
-          Expanded(
-            child: buildContainer(widget,
-                fontSize: fontSize, space: space, color: bookColor),
+          RaisedButton(
+            color: Colors.red,
+            onPressed: this.onTap,
+            child: TextUtil.build("刷新",
+                fontWeight: FontWeight.w500, fontSize: 16, color: Colors.white),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0)),
           ),
-          buildBottom(),
         ],
       ),
-    ));
+    );
   }
 
   /*
@@ -140,20 +178,23 @@ List<String> getReaderViewData(String content,
   double height = Screen.height - 2 * paddingTop - 50.0 - top - bottom;
   TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
   while (tempStr.length > 0) {
-    textPainter.text =
-        TextSpan(text: tempStr, style: TextStyle(fontSize: fontSize,height: space));
+    textPainter.text = TextSpan(
+        text: tempStr, style: TextStyle(fontSize: fontSize, height: space));
     textPainter.layout(maxWidth: width);
     //获取占满这个区域的String的最后一个字符的index(第几个就返回几)
     int end = textPainter.getPositionForOffset(Offset(width, height)).offset;
     //截取的时候可能上一页正好结束，但下一页开头就是换行符，所以不要
-    String page = tempStr.startsWith("\n") ?  tempStr.substring(1,end) : tempStr.substring(0,end);
+    String page = tempStr.startsWith("\n")
+        ? tempStr.substring(1, end)
+        : tempStr.substring(0, end);
     readerViews.add(page);
     tempStr = tempStr.substring(end, tempStr.length);
   }
   return readerViews;
 }
 
-/*List<List<String>> getReaderViewData(List<String> strList,
+/*
+*/ /*List<List<String>> getReaderViewData(List<String> strList,
     {double fontSize = 16.0, double space = 1.5}) {
   if (strList == null) return [];
   print(" $fontSize ======== $space");
@@ -230,13 +271,13 @@ List<String> getReaderViewData(String content,
     }
   }
   return readerViews;
-}*/
+}*/ /*
 
 int getMin(int a, int b) => a < b ? a : b;
 
-/*
+*/ /*
 * 特殊处理
-* */
+* */ /*
 int getSubIndex(String str, int startIndex, int maxNum) {
   if (str.length < maxNum) {
     return str.length;
@@ -276,4 +317,4 @@ int getSubIndex(String str, int startIndex, int maxNum) {
 }
 
 //可显示字符范围,且小字符
-bool isAscii(int c) => c >= 91 && c <= 126;
+bool isAscii(int c) => c >= 91 && c <= 126;*/

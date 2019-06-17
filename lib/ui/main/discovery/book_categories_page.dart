@@ -1,10 +1,8 @@
-import 'package:annotation_route/route.dart';
 import 'package:flutter/material.dart';
-import 'package:zhuishu/model/url.dart';
-import 'package:zhuishu/router/route_util.dart';
-import 'package:zhuishu/router/router_const.dart';
-import 'package:zhuishu/ui/base/base_page.dart';
+import 'package:zhuishu/ui/base/url.dart';
 import 'package:zhuishu/model/categories.dart';
+import 'package:zhuishu/router/index.dart';
+import 'package:zhuishu/ui/base/base_page.dart';
 import 'package:zhuishu/ui/base/my_color.dart';
 import 'package:zhuishu/ui/widget/auto_table.dart';
 import 'package:zhuishu/util/net.dart';
@@ -66,8 +64,10 @@ class _CategoriesWidgetState extends BasePageState<CategoriesWidget> {
   Widget buildCell(String gender,String name, int bookCount){
     return Container(
       height: 50,
-      child: Center(
-        child: GestureDetector(
+      alignment: Alignment.center,
+      child: InkWell(
+        child: Container(
+          constraints: BoxConstraints.expand(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -88,11 +88,11 @@ class _CategoriesWidgetState extends BasePageState<CategoriesWidget> {
               )
             ],
           ),
-          onTap: (){
-            //跳转到对应界面
-            RouteUtil.push(context, PageUrl.BOOK_CATEGORIES_INFO_PAGE, params: {"gender": gender,"name": name});
-          },
         ),
+        onTap: (){
+          //跳转到对应界面
+          RouteUtil.push(context, PageUrl.BOOK_CATEGORIES_INFO_PAGE, params: {"gender": gender,"name": name});
+        },
       ),
     );
   }

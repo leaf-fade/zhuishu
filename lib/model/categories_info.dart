@@ -5,10 +5,10 @@ class CategoriesInfo {
 
   CategoriesInfo.fromJson(jsonRes) {
     total = jsonRes['total'];
-    books = jsonRes['books'] == null ? null : [];
+    books = [];
 
-    for (var booksItem in books == null ? [] : jsonRes['books']){
-      books.add(booksItem == null ? null : BookIntro.fromJson(booksItem));
+    for (var booksItem in jsonRes['books']??[]){
+      books.add(BookIntro.fromJson(booksItem));
     }
   }
 }
@@ -68,5 +68,36 @@ class BookIntro {
     }
   }
 
+  static List<BookIntro> getBooksList(data){
+    List<BookIntro> list = [];
+    for(var info in data??[]){
+      list.add(BookIntro.fromJson(info));
+    }
+    return list;
+  }
 }
+
+class CatsTag{
+  String major;
+  List<String> mins;
+
+  CatsTag.fromJson(jsonRes) {
+    major = jsonRes['major'];
+    mins = jsonRes['mins'] == null ? null : [];
+
+    for (var minsItem in mins == null ? [] : jsonRes['mins']){
+      mins.add(minsItem);
+    }
+  }
+
+  static List<CatsTag> getCatsTags(data){
+    List<CatsTag> list = [];
+    for(var info in data??[]){
+      list.add(CatsTag.fromJson(info));
+    }
+    return list;
+  }
+}
+
+
 
