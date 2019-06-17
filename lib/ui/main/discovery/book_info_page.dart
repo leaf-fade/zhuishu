@@ -14,6 +14,7 @@ import 'package:zhuishu/ui/widget/book_menu_bar.dart';
 import 'package:zhuishu/ui/widget/cover_image.dart';
 import 'package:zhuishu/ui/widget/fold_text.dart';
 import 'package:zhuishu/ui/widget/rating_bar.dart';
+import 'package:zhuishu/util/icon.dart';
 import 'package:zhuishu/util/sp.dart';
 import 'package:zhuishu/util/string.dart';
 import 'package:zhuishu/util/text.dart';
@@ -117,7 +118,16 @@ class _BookInfoWidgetState extends BasePageState<BookInfoWidget> {
         iconTheme: IconThemeData(color: Colors.grey[600]),
         backgroundColor: _color,
         actions: <Widget>[
-          Icon(Icons.message),
+          buildIcon(
+            icon: Icons.message,
+            onTap: (){
+              if(_bookInfo!=null){
+                RouteUtil.push(context, PageUrl.BOOKS_COMMENT_PAGE,
+                    params: {"type": 0 ,"book": _bookInfo, "bookData": bookData});
+              }
+            },
+            color: Colors.grey
+          ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 15.0),
             child: Icon(Icons.share),
