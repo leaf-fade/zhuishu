@@ -136,6 +136,7 @@ class _ReaderPageState extends BasePageState<ReaderPage> {
   }
 
   onScroll() {
+    if(curChapter==null) return;
     var page = _pageController.offset / Screen.width;
     if (page >=
         curChapter.pageCount +

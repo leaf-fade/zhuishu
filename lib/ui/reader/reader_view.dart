@@ -78,24 +78,35 @@ class ReaderView extends StatelessWidget {
   }
 
   buildLoadFail() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Image.asset("images/icon_cartoon.png"),
-          SizedBox(
-            height: 30,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          height: top,
+          child: TextUtil.build(title, fontSize: _size),
+        ),
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Image.asset("images/icon_cartoon.png"),
+                SizedBox(
+                  height: 30,
+                ),
+                RaisedButton(
+                  color: Colors.red,
+                  onPressed: this.onTap,
+                  child: TextUtil.build("刷新",
+                      fontWeight: FontWeight.w500, fontSize: 16, color: Colors.white),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0)),
+                ),
+              ],
+            ),
           ),
-          RaisedButton(
-            color: Colors.red,
-            onPressed: this.onTap,
-            child: TextUtil.build("刷新",
-                fontWeight: FontWeight.w500, fontSize: 16, color: Colors.white),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0)),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

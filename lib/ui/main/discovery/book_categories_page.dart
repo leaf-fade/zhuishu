@@ -113,8 +113,6 @@ class _CategoriesWidgetState extends BasePageState<CategoriesWidget> {
     _categories = Categories.fromJson(data);
   }
 
-
-
 }
 
 
