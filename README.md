@@ -1,11 +1,11 @@
 ## 效果图
-![主页](https://upload-images.jianshu.io/upload_images/5999599-20bc9ee89dbe97b2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![主页](https://upload-images.jianshu.io/upload_images/5999599-20bc9ee89dbe97b2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/240)
 
-![阅读](https://upload-images.jianshu.io/upload_images/5999599-56fb89234df796a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![阅读](https://upload-images.jianshu.io/upload_images/5999599-56fb89234df796a3.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/240)
 
-![搜索](https://upload-images.jianshu.io/upload_images/5999599-475d810fc76fe3bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![搜索](https://upload-images.jianshu.io/upload_images/5999599-475d810fc76fe3bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/240)
 
-![讨论](https://upload-images.jianshu.io/upload_images/5999599-4ff286f34289afed.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![讨论](https://upload-images.jianshu.io/upload_images/5999599-4ff286f34289afed.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/240)
 
 
 实现了书架、书单、排行榜、分类，阅读、换源、搜索、历史、夜间模式等功能
