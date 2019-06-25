@@ -34,4 +34,5 @@
 
 2. [Draggable Scrollbar](https://github.com/fluttercommunity/flutter-draggable-scrollbar)
 
-
+## 基本准则
+不得用于任何商业以及利益活动。由此引起的责任，跟我无关。谢谢！
