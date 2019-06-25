@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:zhuishu/router/index.dart';
-import 'package:zhuishu/ui/widget/tags_popup_menu.dart';
 
 void main() => runApp(MyApp());
 

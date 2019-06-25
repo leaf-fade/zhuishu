@@ -101,7 +101,6 @@ class TextUtil {
     return Column(
       children: split(content, regExp).map((String s){
         if(s.startsWith("{{")){
-          print(s);
           //去头去尾转json格式
           ReviewImageInfo imgInfo = ReviewImageInfo.fromString(s.substring(2,s.length-2));
           return Image.network(imgInfo.url);
@@ -127,7 +126,12 @@ class TextUtil {
     //书本
     RegExp regExp2 = RegExp("《(.*?)》");
     split(content, regExp).forEach((String s){
-      str.addAll(split(s, regExp2));
+      if(s.startsWith("[[")){
+        print("=============$s");
+        str.add(s);
+      }else{
+        str.addAll(split(s, regExp2));
+      }
     });
     return str.length==1? build(content,fontSize: fontSize,color: color, fontWeight: fontWeight): RichText(
       text: TextSpan(
@@ -147,7 +151,7 @@ class TextUtil {
            );
           }else if(s.startsWith("[[")){
             List<String> l= s.split(" ");
-            if(l.length > 1){
+            if(l.length > 1&&l[1].isNotEmpty){
               return TextSpan(
                 text: l[1].substring(0,l[1].length-2),
                 style: TextStyle(color: clickColor),

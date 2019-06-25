@@ -91,6 +91,7 @@ class _BookCommentDetailWidgetState
   }
 
   Widget buildHeader(Review review) {
+    print("============头部============");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -106,7 +107,19 @@ class _BookCommentDetailWidgetState
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
           child: TextUtil.buildAll(review.content,
-              color: Colors.blueGrey, onValue: (type, value) {}),
+              color: Colors.blueGrey, onValue: (type, value) {
+                switch(type){
+                  case "url":
+                    String id = value.split(":")[1];
+                    RouteUtil.push(context, PageUrl.BOOKS_COMMENT_DETAIL_PAGE,
+                        params: {"review": Review(id),"type": 0});
+                    break;
+                  case "tag":
+                    RouteUtil.push(context, PageUrl.AUTHOR_BOOKS_PAGE,
+                        params: {"title": value, "type": type});
+                    break;
+                }
+              }),
         ),
         buildCommentHelpful(),
       ],
@@ -282,7 +295,7 @@ class _BookCommentDetailWidgetState
       if (_commentList.isNotEmpty) {
         total = _commentList[0].floor;
       }
-    });
+    }, checkOk: checkOk);
 
     url = "/post/${widget.review.id}/comment/best";
     netConnect(url, (data) {
