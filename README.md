@@ -1,6 +1,6 @@
 ## 目的
-写这个的目的本来是想有一个方便自己阅读的，没有广告的软件，结果不知道为啥追书就凉凉了 \n
-友军地址：[阅读](https://github.com/leaf-fade/MyBookshelf)
+写这个的目的本来是想有一个方便自己阅读的，没有广告的软件，结果不知道为啥追书就凉凉了 <br/>
+友军地址：[阅读](https://github.com/leaf-fade/MyBookshelf) <br/>
 很好用，感兴趣的可以去star一下
 
 ## 效果图
