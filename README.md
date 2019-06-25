@@ -1,3 +1,8 @@
+## 目的
+写这个的目的本来是想有一个方便自己阅读的，没有广告的软件，结果不知道为啥追书就凉凉了
+友军地址：[阅读](https://github.com/leaf-fade/MyBookshelf)
+很好用，感兴趣的可以去star一下
+
 ## 效果图
 ![主页](https://upload-images.jianshu.io/upload_images/5999599-20bc9ee89dbe97b2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/240)
 
@@ -21,5 +26,9 @@
 3. 有些做的不够严谨，并未单独抽出来放在一个常量文件中（比如颜色、文字等）
 4. 优化卡顿
 
+## 感谢
+1. [高仿书旗小说 Flutter 版](https://github.com/huanxsd/flutter_shuqi)
+
+2. [Draggable Scrollbar](https://github.com/fluttercommunity/flutter-draggable-scrollbar)
 
 
